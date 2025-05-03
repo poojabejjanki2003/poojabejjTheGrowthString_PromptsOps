@@ -1,0 +1,40 @@
+version: 0.2.0
+
+env:
+  DOCKER_USERNAME: pooja65
+  DOCKER_PASSWORD: ${{ ssm:/docker-password }}
+  AWS_REGION: ap-south-1
+
+phases:
+  install:
+    runtime-versions:
+      docker: 20
+    commands:
+      - echo Logging in to Docker Hub...
+      - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+
+  pre_build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t lgsweb .
+
+  build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker tag lgsweb:latest $DOCKER_USERNAME/lgsweb:latest
+      - docker push $DOCKER_USERNAME/lgsweb:latest
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Cleaning up...
+      - docker logout
+
+artifacts:
+  files:
+    - 'imageDetail.json'
+  name: lgsweb
+  packaging: NONE
+  type: DOCKER
